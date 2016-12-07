@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Couchbase;
+using Couchbase.Configuration.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -61,6 +61,10 @@ namespace Restfulangularcore
                 routes.MapSpaFallbackRoute(
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
+            });
+
+            ClusterHelper.Initialize(new ClientConfiguration {
+                Servers = new List<Uri> { new Uri("couchbase://localhost") }
             });
         }
     }
