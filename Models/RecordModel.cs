@@ -4,35 +4,42 @@ using System.Threading.Tasks;
 using Couchbase;
 using Couchbase.Core;
 using Couchbase.N1QL;
+using Restfulangularcore.Configuration;
 
 namespace Restfulangularcore.Models
 {
     public class RecordModel
     {
         readonly IBucket _bucket;
+        readonly string _bucketName;
 
-        public RecordModel()
+        public RecordModel(CouchbaseSettings settings)
         {
-            _bucket = ClusterHelper.GetBucket("default"); //ConfigurationManager.AppSettings["CouchbaseBucket"]);
+            _bucket = ClusterHelper.GetBucket(settings.Bucket);
+            _bucketName = settings.Bucket;
         }
-
 
         public async Task<dynamic> GetByDocumentId(Guid documentId)
         {
             var n1ql = "SELECT firstname, lastname, email " +
-                       "FROM `default` AS users " + //ConfigurationManager.AppSettings["CouchbaseBucket"] + "` AS users " +
+                       "FROM `" + _bucketName + "` AS users " +
                        "WHERE META(users).id = $1";
             var query = QueryRequest.Create(n1ql);
             query.AddPositionalParameter(documentId);
 
             var r = await _bucket.QueryAsync<dynamic>(query);
             return r.Rows.FirstOrDefault();
+
+            // getting a single document by ID is not an efficient use of N1QL/Couchbase
+            // so the above is just an instructional example
+            // it would be better to do this in practice:
+            // return _bucket.Get<dynamic>(documentId.ToString());
         }
 
         public async Task<dynamic> GetAll()
         {
             var n1ql = "SELECT META(users).id, firstname, lastname, email " +
-                        "FROM `default` AS users "; //+ ConfigurationManager.AppSettings["CouchbaseBucket"] + "` AS users";
+                        "FROM `" + _bucketName + "` AS users ";
             var query = QueryRequest.Create(n1ql);
             query.ScanConsistency(ScanConsistency.RequestPlus);
 
@@ -64,40 +71,5 @@ namespace Restfulangularcore.Models
 
         public Task<IOperationResult> Delete(Guid documentId) =>
             _bucket.RemoveAsync(documentId.ToString());
-
-/*
-        public async Task<dynamic> FindAllRoutes(string from, string to)
-        {
-            var statement = @"SELECT faa AS fromAirport, geo 
-                              FROM `" + ConfigurationManager.AppSettings["CouchbaseBucket"] + @"` r
-                              WHERE airportname = $1
-                              UNION SELECT faa AS toAirport, geo
-                              FROM `" + ConfigurationManager.AppSettings["CouchbaseBucket"] + @"` r
-                              WHERE airportname = $2";
-            var queryToRun = QueryRequest.Create(statement);
-            queryToRun.AddPositionalParameter(from);
-            queryToRun.AddPositionalParameter(to);
-            var results = await _bucket.QueryAsync<dynamic>(queryToRun);
-            return results.Rows;
-        }
-
-        public async Task<dynamic> FindAllRoutesOnDay(string queryFrom, string queryTo, int leave)
-        {
-            var statement = @"SELECT r.id, a.name, s.flight, s.utc, r.sourceairport, r.destinationairport, r.equipment
-                              FROM `" + ConfigurationManager.AppSettings["CouchbaseBucket"] + @"` r
-                              UNNEST r.schedule s
-                              JOIN `" + ConfigurationManager.AppSettings["CouchbaseBucket"] + @"` a ON KEYS r.airlineid
-                              WHERE r.sourceairport = $1
-                              AND r.destinationairport = $2
-                              AND s.day = $3
-                              ORDER BY a.name";
-            var queryToRun = QueryRequest.Create(statement);
-            queryToRun.AddPositionalParameter(queryFrom);
-            queryToRun.AddPositionalParameter(queryTo);
-            queryToRun.AddPositionalParameter(leave);
-            var results = await _bucket.QueryAsync<dynamic>(queryToRun);
-            return results.Rows;
-        }
-        */
     }
 }

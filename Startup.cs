@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Restfulangularcore.Configuration;
 
 namespace Restfulangularcore
 {
@@ -30,6 +31,10 @@ namespace Restfulangularcore
         {
             // Add framework services.
             services.AddMvc();
+
+            services.AddOptions();
+
+            services.Configure<CouchbaseSettings>(Configuration.GetSection("CouchbaseSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,8 +68,9 @@ namespace Restfulangularcore
                     defaults: new { controller = "Home", action = "Index" });
             });
 
+            var couchbaseUrl = Configuration["CouchbaseSettings:Url"];
             ClusterHelper.Initialize(new ClientConfiguration {
-                Servers = new List<Uri> { new Uri("couchbase://localhost") }
+                Servers = new List<Uri> { new Uri(couchbaseUrl) }
             });
         }
     }

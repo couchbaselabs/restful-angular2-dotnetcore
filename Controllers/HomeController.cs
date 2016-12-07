@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Restfulangularcore.Configuration;
 using Restfulangularcore.Models;
 
 namespace Restfulangularcore.Controllers
@@ -9,9 +11,9 @@ namespace Restfulangularcore.Controllers
     {
         readonly RecordModel _model;
         
-        public HomeController()
+        public HomeController(IOptions<CouchbaseSettings> settings)
         {
-            _model = new RecordModel();
+            _model = new RecordModel(settings.Value);
         }
 
         public IActionResult Index() {
