@@ -14,7 +14,6 @@ export class ListComponent implements OnInit {
     }
 
     public ngOnInit() {
-        console.log("boo");
         this.http.get("/api/getAll")
             .subscribe(results => {
                 this.people = results.json();
