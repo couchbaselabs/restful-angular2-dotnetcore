@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Couchbase;
 using Couchbase.Core;
 using Couchbase.N1QL;
+using Microsoft.Extensions.Options;
 using Restful.Configuration;
 
 namespace Restful.Models
@@ -13,10 +14,10 @@ namespace Restful.Models
         readonly IBucket _bucket;
         readonly string _bucketName;
 
-        public RecordModel(CouchbaseSettings settings)
+        public RecordModel(Cluster cluster, IOptions<CouchbaseSettings> settings)
         {
-            _bucket = ClusterHelper.GetBucket(settings.Bucket, settings.Password);
-            _bucketName = settings.Bucket;
+            _bucket = cluster.OpenBucket(settings.Value.Bucket);
+            _bucketName = settings.Value.Bucket;
         }
 
         public async Task<dynamic> GetByDocumentId(Guid documentId)

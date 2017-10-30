@@ -4,6 +4,7 @@ namespace Restful.Configuration
     {
         public string Url { get; set; }
         public string Bucket { get; set; }
+        public string Username { get; set; }
         public string Password { get; set; }
     }
 }

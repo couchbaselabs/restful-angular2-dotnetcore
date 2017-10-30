@@ -11,9 +11,9 @@ namespace Restful.Controllers
     {
         readonly RecordModel _model;
         
-        public HomeController(IOptions<CouchbaseSettings> settings)
+        public HomeController(RecordModel model)
         {
-            _model = new RecordModel(settings.Value);
+            _model = model;
         }
 
         public IActionResult Index() {

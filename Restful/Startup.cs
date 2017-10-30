@@ -8,7 +8,9 @@ using Restful.Configuration;
 using System;
 using System.Collections.Generic;
 using Couchbase;
+using Couchbase.Authentication;
 using Couchbase.Configuration.Client;
+using Restful.Models;
 
 namespace Restful
 {
@@ -35,6 +37,20 @@ namespace Restful
             services.AddOptions();
 
             services.Configure<CouchbaseSettings>(Configuration.GetSection("CouchbaseSettings"));
+
+            var couchbaseUrl = Configuration["CouchbaseSettings:Url"];
+            var couchbaseUsername = Configuration["CouchbaseSettings:Username"];
+            var couchbasePassword = Configuration["CouchbaseSettings:Password"];
+            services.AddSingleton<Cluster>(x =>
+            {
+                var cluster = new Cluster(new ClientConfiguration
+                {
+                    Servers = new List<Uri> { new Uri(couchbaseUrl) }
+                });
+                cluster.Authenticate(new PasswordAuthenticator(couchbaseUsername, couchbasePassword));
+                return cluster;
+            });
+            services.AddTransient<RecordModel>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,12 +82,6 @@ namespace Restful
                 routes.MapSpaFallbackRoute(
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
-            });
-
-            var couchbaseUrl = Configuration["CouchbaseSettings:Url"];
-            ClusterHelper.Initialize(new ClientConfiguration
-            {
-                Servers = new List<Uri> { new Uri(couchbaseUrl) }
             });
         }
     }
